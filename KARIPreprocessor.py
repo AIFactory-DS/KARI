@@ -1,8 +1,10 @@
-from AIFactoryDS.AbstractProcesses import Preprocessor
-from typing import Final
+import json
 import logging
 import os
-import json
+import cv2
+import numpy as np
+from typing import Final
+from AIFactoryDS.AbstractProcesses import Preprocessor
 
 
 # data type
@@ -38,8 +40,25 @@ class KARIPreprocessor(Preprocessor):
         annotation_test_path = os.path.join(annotation_directory, 'test2017.json')
         annotation_train = self.open_json(annotation_train_path)
         annotation_test = self.open_json(annotation_test_path)
-        return None
 
+        def extract_boxes(annotations):
+            image_id_map = {}
+            image_map = {}
+            for image_info in annotations['images']:
+                image_id_map[image_info['id']] = image_info['file_name']
+                image_path = os.path.join(image_directory, image_info['file_name'])
+                image_map[image_info['file_name']] = np.array(cv2.imread(image_path))
+            boxes = []
+            for anno in annotations['annotations']:
+                _ = [image_id_map[anno['image_id']]]
+                _.extend(anno['bbox'])
+                boxes.append(np.array(_))
+            return image_map, boxes
+        image_train, boxes_train = extract_boxes(annotation_train)
+        image_test, boxes_test = extract_boxes(annotation_test)
+        self.dataset = {'train': {'image': image_train, 'bbox': boxes_train},
+                   'test': {'image': image_test, 'bbox': boxes_test}}
+        return self.dataset
 
     def load_original_data(self, **kwargs):
         logging.info("Start loading dataset from directory " + self.directory_path + '.\n')
@@ -52,7 +71,14 @@ class KARIPreprocessor(Preprocessor):
             return None
 
     def save_processed_data(self, **kwargs):
-        pass
+        if self.dataset is None:
+            logging.warning('You need to load the data before save the dataset. \n' +
+                            'Please call `load_original_dataset` first. \n')
+            return False
+        elif kwargs.get('output_file_path') is None:
+            logging.warning('Saving the dataset into a default path: `data/processed.npy` \n')
+        np.save(kwargs.get('output_file_path', 'data/processed.npy'), self.dataset, allow_pickle=True)
+        return True
 
     def process(self, **kwargs):
         pass
@@ -63,6 +89,11 @@ class KARIPreprocessor(Preprocessor):
     def execute(self):
         self.load_original_data()
         self.save_processed_data()
+
+    @staticmethod
+    def load_processed_data(**kwargs):
+        dataset = np.load(kwargs.get('processed_data_path', 'data/processed.npy'), allow_pickle=True)
+        return dataset
 
     def __repr__(self):
         if len(self.representation) == 0:
@@ -83,3 +114,4 @@ if __name__ == "__main__":
     kari_data_manager = KARIPreprocessor()
     print(kari_data_manager)
     kari_data_manager.load_original_data()
+    kari_data_manager.save_processed_data()
