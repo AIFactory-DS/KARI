@@ -47,17 +47,18 @@ class KARIPreprocessor(Preprocessor):
             for image_info in annotations['images']:
                 image_id_map[image_info['id']] = image_info['file_name']
                 image_path = os.path.join(image_directory, image_info['file_name'])
-                image_map[image_info['file_name']] = np.array(cv2.imread(image_path))
-            boxes = []
+                image_map[image_info['file_name']] = {'image': np.array(cv2.imread(image_path))}
+
             for anno in annotations['annotations']:
-                _ = [image_id_map[anno['image_id']]]
-                _.extend(anno['bbox'])
-                boxes.append(np.array(_))
-            return image_map, boxes
-        image_train, boxes_train = extract_boxes(annotation_train)
-        image_test, boxes_test = extract_boxes(annotation_test)
-        self.dataset = {'train': {'image': image_train, 'bbox': boxes_train},
-                   'test': {'image': image_test, 'bbox': boxes_test}}
+                file_name = image_id_map[anno['image_id']]
+                if 'bbox' in image_map[file_name].keys():
+                    image_map[file_name]['bbox'].append(anno['bbox'])
+                else:
+                    image_map[file_name]['bbox'] = [anno['bbox']]
+            return image_map
+        image_train = extract_boxes(annotation_train)
+        image_test = extract_boxes(annotation_test)
+        self.dataset = {'train': image_train, 'test': image_test}
         return self.dataset
 
     def load_original_data(self, **kwargs):
