@@ -22,7 +22,7 @@ class KARIPreprocessor(Preprocessor):
 
     def __init__(self, **kwargs):
         self.dataset_type = kwargs.get('dataset_type', DATASET_TYPE.HRSID)
-        self.directory_path = kwargs.get('directory_path', 'data/HRSID_JPG')
+        self.directory_path = kwargs.get('directory_path', '../data/HRSID_JPG')
         logging.basicConfig(level=kwargs.get('log', logging.INFO))
 
     @staticmethod
@@ -84,9 +84,9 @@ class KARIPreprocessor(Preprocessor):
             logging.warning('Saving the dataset into a default path: `data/processed.npy` \n')
         data_format = kwargs.get("data_format", "numpy")
         if data_format == "numpy":
-            np.save(kwargs.get('output_file_path', 'data/processed.npy'), self.dataset, allow_pickle=True)
+            np.save(kwargs.get('output_file_path', '../data/processed.npy'), self.dataset, allow_pickle=True)
         elif data_format == "json":
-            with open('data/processed.json', 'w') as fp:
+            with open('../data/processed.json', 'w') as fp:
                 json.dump(self.dataset, fp)
         return True
 
@@ -102,7 +102,7 @@ class KARIPreprocessor(Preprocessor):
 
     @staticmethod
     def load_processed_data(**kwargs):
-        dataset = np.load(kwargs.get('processed_data_path', 'data/processed.npy'), allow_pickle=True)
+        dataset = np.load(kwargs.get('processed_data_path', '../data/processed.npy'), allow_pickle=True)
         return dataset
 
     def __repr__(self):
