@@ -1,4 +1,4 @@
-# KARI x AI Factory - Auomated Moving Target Detection
+# KARI x AI Factory X 에코센싱 - Auomated Moving Target Detection
 
 ## Project Structure
 

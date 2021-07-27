@@ -5,6 +5,7 @@ import cv2
 import numpy as np
 from typing import Final
 from AIFactoryDS.AbstractProcesses import Preprocessor
+from AIFactoryDS.ImageUtilities import normalize_image
 
 
 # data type
@@ -45,9 +46,12 @@ class KARIPreprocessor(Preprocessor):
             image_id_map = {}
             image_map = {}
             for image_info in annotations['images']:
-                image_id_map[image_info['id']] = image_info['file_name']
-                image_path = os.path.join(image_directory, image_info['file_name'])
-                image_map[image_info['file_name']] = {'image': np.array(cv2.imread(image_path))}
+                file_name = image_info['file_name']
+                image_id_map[image_info['id']] = file_name
+                image_path = os.path.join(image_directory, file_name)
+                image_map[file_name] = {'image': cv2.imread(image_path).tolist()}
+                # image_map[file_name] = {'image': np.array(cv2.imread(image_path))}
+                # image_map[file_name]['normalized_image'] = normalize_image(image_map[file_name]['image'])
 
             for anno in annotations['annotations']:
                 file_name = image_id_map[anno['image_id']]
@@ -78,7 +82,12 @@ class KARIPreprocessor(Preprocessor):
             return False
         elif kwargs.get('output_file_path') is None:
             logging.warning('Saving the dataset into a default path: `data/processed.npy` \n')
-        np.save(kwargs.get('output_file_path', 'data/processed.npy'), self.dataset, allow_pickle=True)
+        data_format = kwargs.get("data_format", "numpy")
+        if data_format == "numpy":
+            np.save(kwargs.get('output_file_path', 'data/processed.npy'), self.dataset, allow_pickle=True)
+        elif data_format == "json":
+            with open('data/processed.json', 'w') as fp:
+                json.dump(self.dataset, fp)
         return True
 
     def process(self, **kwargs):
@@ -115,4 +124,4 @@ if __name__ == "__main__":
     kari_data_manager = KARIPreprocessor()
     print(kari_data_manager)
     kari_data_manager.load_original_data()
-    kari_data_manager.save_processed_data()
+    kari_data_manager.save_processed_data(data_format='json')

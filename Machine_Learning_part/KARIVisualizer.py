@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
 import os
+import random
 
 
 def sample_image_visualization():
@@ -18,8 +19,8 @@ def sample_image_visualization():
             x1_y1 = tuple([int(x), int(y)])
             x2_y2 = tuple([int(x + w), int(y + h)])
             cv2.rectangle(image, x1_y1, x2_y2, color=(0, 255, 255), thickness=2, lineType=None, shift=None)
-            cv2.waitKey()
-            cv2.imshow("image", image)
+        cv2.waitKey()
+        cv2.imshow("image", image)
         cv2.imwrite(os.path.join(output_path, image_name), image)
 
 
