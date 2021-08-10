@@ -5,7 +5,6 @@ import cv2
 import numpy as np
 from typing import Final
 from AIFactoryDS.AbstractProcesses import Preprocessor
-from AIFactoryDS.ImageUtilities import normalize_image
 
 
 # data type
@@ -59,6 +58,7 @@ class KARIPreprocessor(Preprocessor):
                     image_map[file_name]['bbox'].append(anno['bbox'])
                 else:
                     image_map[file_name]['bbox'] = [anno['bbox']]
+
             return image_map
         image_train = extract_boxes(annotation_train)
         image_test = extract_boxes(annotation_test)
